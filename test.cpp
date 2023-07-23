@@ -1,5 +1,6 @@
-#include <cstdio>
+#include <fcntl.h>
 #include <linux/limits.h>
+#include <string>
 #include <unistd.h>
 
 ssize_t get_filename_from_fd(int fd, char result[PATH_MAX]) {
@@ -19,22 +20,38 @@ struct at_exit {
 };
 
 int main(int argc, char *argv[]) {
+    using namespace std::string_literals;
+
     if (argc != 3) {
-        printf("usage: %s FILE MODE\n", argv[0]);
+        printf("usage: %s FILE FLAGS\n", argv[0]);
         return 1;
     }
 
-    FILE* f = fopen(argv[1], argv[2]);
-    if (f == nullptr) {
+    int flags = 0;
+    if (argv[2] == "r"s)  {
+        flags = O_RDONLY;
+    } else if (argv[2] == "w"s) {
+        flags = O_CREAT | O_WRONLY | O_TRUNC;
+    } else {
+        printf("flag error\n");
+        return 1;
+    }
+
+    int fd = -1;
+    if ((flags & O_CREAT) != 0) {
+        fd = open(argv[1], flags, 0644);
+    } else {
+        fd = open(argv[1], flags);
+    }
+    if (fd == -1) {
         printf("fopen error\n");
         return 1;
     }
 
     at_exit hnd{[=] {
-        fclose(f);
+        close(fd);
     }};
 
-    int fd = fileno(f);
     char real_path[PATH_MAX];
     if (get_filename_from_fd(fd, real_path) == -1) {
         printf("readlink error\n");
