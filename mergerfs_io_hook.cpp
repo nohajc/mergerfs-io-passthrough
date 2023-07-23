@@ -37,6 +37,7 @@ namespace {
 
 extern "C" {
     int open(const char *path, int flags, ...);
+    int openat(int dirfd, const char* path, int flags, ...);
 }
 
 HOOK(open);
