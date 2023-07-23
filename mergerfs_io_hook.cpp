@@ -1,4 +1,5 @@
 #include <cstdarg>
+#include <cstdio>
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <linux/limits.h>
@@ -76,6 +77,7 @@ int open(const char *path, int flags, ...) {
         }
         return hooked_open(path, flags);
     }
+    printf("real path: %s\n", real_path);
 
     if (creat_flag_present) {
         close(fd);
