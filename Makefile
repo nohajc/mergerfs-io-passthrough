@@ -1,5 +1,6 @@
 CXX := g++
-CXXFLAGS := ${CXXFLAGS} -fPIC -std=c++17
+CXXFLAGS := ${CXXFLAGS} -pthread -fPIC -std=c++17
+LDFLAGS := ${LDFLAGS} -pthread
 
 libmergerfs_io_hook.so: mergerfs_io_hook.o
 	$(CXX) -shared -fPIC $< -o $@ $(LDFLAGS)
