@@ -1,0 +1,5 @@
+CXX := g++
+CXXFLAGS := ${CXXFLAGS} -fPIC -std=c++20
+
+libmergerfs_io_hook.so: mergerfs_io_hook.o
+	$(CXX) -shared -fPIC $< -o $@ $(LDFLAGS)
