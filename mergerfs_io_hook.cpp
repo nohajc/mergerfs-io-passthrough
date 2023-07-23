@@ -40,12 +40,13 @@ extern "C" {
 }
 
 HOOK(open);
+HOOK(openat);
 
-static ssize_t get_real_path(const char* path, char result[PATH_MAX]) {
-    return getxattr(path, "user.mergerfs.fullpath", result, PATH_MAX);
+static ssize_t get_real_path(int fd, char result[PATH_MAX]) {
+    return fgetxattr(fd, "user.mergerfs.fullpath", result, PATH_MAX);
 }
 
-int open(const char *path, int flags, ...) {
+int openat(int dirfd, const char* path, int flags, ...) {
     mode_t mode = 0;
     int fd = -1;
 
@@ -61,30 +62,81 @@ int open(const char *path, int flags, ...) {
         // first open it using the caller supplied path.
         // That way we ensure mergerfs has established
         // the path mapping before we try to query it.
-        fd = hooked_open(path, flags, mode);
-        if (fd == -1) {
-            return fd;
-        }
+        fd = hooked_openat(dirfd, path, flags, mode);
+    } else {
+        fd = hooked_openat(dirfd, path, flags);
+    }
+
+    if (fd == -1) {
+        return fd;
     }
 
     char real_path[PATH_MAX];
-    bool real_path_available = get_real_path(path, real_path) != -1;
+    bool real_path_available = get_real_path(fd, real_path) != -1;
 
     if (!real_path_available) {
         // probably not mergerfs, return the fd without change
-        if (creat_flag_present) {
-            return fd;
-        }
-        return hooked_open(path, flags);
+        return fd;
     }
+
     printf("real path: %s\n", real_path);
+    close(fd);
 
     if (creat_flag_present) {
-        close(fd);
         return hooked_open(real_path, flags, mode);
     }
 
     return hooked_open(real_path, flags);
+}
+
+int open(const char *path, int flags, ...) {
+    if ((flags & O_CREAT) != 0) {
+        va_list args;
+        va_start(args, flags);
+        mode_t mode = va_arg(args, mode_t);
+        va_end(args);
+        return openat(AT_FDCWD, path, flags, mode);
+    }
+    return openat(AT_FDCWD, path, flags);
+    // mode_t mode = 0;
+    // int fd = -1;
+
+    // bool creat_flag_present = (flags & O_CREAT) != 0;
+
+    // if (creat_flag_present) {
+    //     va_list args;
+    //     va_start(args, flags);
+    //     mode = va_arg(args, mode_t);
+    //     va_end(args);
+
+    //     // We're possibly creating a file, so we need to
+    //     // first open it using the caller supplied path.
+    //     // That way we ensure mergerfs has established
+    //     // the path mapping before we try to query it.
+    //     fd = hooked_open(path, flags, mode);
+    //     if (fd == -1) {
+    //         return fd;
+    //     }
+    // }
+
+    // char real_path[PATH_MAX];
+    // bool real_path_available = get_real_path(path, real_path) != -1;
+
+    // if (!real_path_available) {
+    //     // probably not mergerfs, return the fd without change
+    //     if (creat_flag_present) {
+    //         return fd;
+    //     }
+    //     return hooked_open(path, flags);
+    // }
+    // printf("real path: %s\n", real_path);
+
+    // if (creat_flag_present) {
+    //     close(fd);
+    //     return hooked_open(real_path, flags, mode);
+    // }
+
+    // return hooked_open(real_path, flags);
 }
 
 static int test() {
