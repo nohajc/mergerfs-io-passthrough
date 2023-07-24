@@ -13,3 +13,9 @@ In practice, this means you can mount your pool with `cache.files=off` (better p
 This is particularly useful for [rtorrent](https://github.com/rakshasa/rtorrent) which may otherwise be unstable when accessing mergerfs files (I experienced random crashes during hash checking).
 
 A wrapper script `rtorrent-mfs` for launching `rtorrent` is included.
+
+## Install
+```bash
+make
+sudo make install
+```
