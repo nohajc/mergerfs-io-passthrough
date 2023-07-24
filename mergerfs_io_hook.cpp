@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/xattr.h>
+#include <syslog.h>
 #include <unistd.h>
 
 namespace {
@@ -33,6 +34,19 @@ namespace {
     };
 
     #define HOOK(func) func_ptr hooked_ ## func(func, #func)
+
+    std::once_flag log_init;
+
+    static void log(int priority, const char* format, ...) {
+        std::call_once(log_init, [] {
+            openlog("mergerfs-io-passthrough", LOG_PID, LOG_USER);
+        });
+
+        va_list args;
+        va_start(args, format);
+        vsyslog(priority, format, args);
+        va_end(args);
+    }
 }
 
 extern "C" {
@@ -80,7 +94,7 @@ int openat(int dirfd, const char* path, int flags, ...) {
         return fd;
     }
 
-    printf("real path: %s\n", real_path);
+    log(LOG_NOTICE, "path %s resolved as %s\n", path, real_path);
     close(fd);
 
     if (creat_flag_present) {
