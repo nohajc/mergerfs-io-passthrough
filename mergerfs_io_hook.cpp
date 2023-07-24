@@ -99,45 +99,6 @@ int open(const char *path, int flags, ...) {
         return openat(AT_FDCWD, path, flags, mode);
     }
     return openat(AT_FDCWD, path, flags);
-    // mode_t mode = 0;
-    // int fd = -1;
-
-    // bool creat_flag_present = (flags & O_CREAT) != 0;
-
-    // if (creat_flag_present) {
-    //     va_list args;
-    //     va_start(args, flags);
-    //     mode = va_arg(args, mode_t);
-    //     va_end(args);
-
-    //     // We're possibly creating a file, so we need to
-    //     // first open it using the caller supplied path.
-    //     // That way we ensure mergerfs has established
-    //     // the path mapping before we try to query it.
-    //     fd = hooked_open(path, flags, mode);
-    //     if (fd == -1) {
-    //         return fd;
-    //     }
-    // }
-
-    // char real_path[PATH_MAX];
-    // bool real_path_available = get_real_path(path, real_path) != -1;
-
-    // if (!real_path_available) {
-    //     // probably not mergerfs, return the fd without change
-    //     if (creat_flag_present) {
-    //         return fd;
-    //     }
-    //     return hooked_open(path, flags);
-    // }
-    // printf("real path: %s\n", real_path);
-
-    // if (creat_flag_present) {
-    //     close(fd);
-    //     return hooked_open(real_path, flags, mode);
-    // }
-
-    // return hooked_open(real_path, flags);
 }
 
 static int test() {
