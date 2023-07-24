@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdarg>
 #include <cstdio>
 #include <dlfcn.h>
@@ -57,8 +58,14 @@ extern "C" {
 HOOK(open);
 HOOK(openat);
 
+// result will be a null-terminated string
 static ssize_t get_real_path(int fd, char result[PATH_MAX]) {
-    return fgetxattr(fd, "user.mergerfs.fullpath", result, PATH_MAX);
+    auto len = fgetxattr(fd, "user.mergerfs.fullpath", result, PATH_MAX);
+    ssize_t last_idx = PATH_MAX - 1;
+    auto null_idx = std::min(len, last_idx);
+    result[null_idx] = 0;
+
+    return len;
 }
 
 int openat(int dirfd, const char* path, int flags, ...) {
