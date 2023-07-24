@@ -121,15 +121,3 @@ int open(const char *path, int flags, ...) {
     }
     return openat(AT_FDCWD, path, flags);
 }
-
-static int test() {
-    return open("", 0);
-}
-
-static int test2() {
-    return openat(0, "", 0);
-}
-
-static int test3() {
-    return creat("", 0); // not variadic
-}
