@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fcntl.h>
 #include <linux/limits.h>
 #include <string>
@@ -6,7 +7,16 @@
 ssize_t get_filename_from_fd(int fd, char result[PATH_MAX]) {
     char path[PATH_MAX];
     sprintf(path, "/proc/self/fd/%d", fd);
-    return readlink(path, result, PATH_MAX);
+
+    ssize_t len = readlink(path, result, PATH_MAX);
+    if (len == -1) {
+        return len;
+    }
+
+    ssize_t last_idx = PATH_MAX - 1;
+    auto null_idx = std::min(len, last_idx);
+    result[null_idx] = 0;
+    return len;
 }
 
 template <typename F>
