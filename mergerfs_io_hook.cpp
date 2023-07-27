@@ -1,15 +1,21 @@
 #include <algorithm>
 #include <cstdarg>
 #include <cstdio>
+#include <cstring>
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <linux/limits.h>
 #include <mutex>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/xattr.h>
 #include <syslog.h>
 #include <unistd.h>
+
+typedef char IOCTL_BUF[4096];
+#define IOCTL_APP_TYPE  0xDF
+#define IOCTL_FILE_INFO _IOWR(IOCTL_APP_TYPE,0,IOCTL_BUF)
 
 namespace {
     template <typename F>
@@ -60,13 +66,15 @@ HOOK(open);
 HOOK(openat);
 
 // result will be a null-terminated string
-static ssize_t get_real_path(int fd, char result[PATH_MAX]) {
-    auto len = fgetxattr(fd, "user.mergerfs.fullpath", result, PATH_MAX);
-    ssize_t last_idx = PATH_MAX - 1;
-    auto null_idx = std::min(len, last_idx);
-    result[null_idx] = 0;
+static int get_real_path(int fd, char result[PATH_MAX]) {
+    strcpy(result, "fullpath");
+    return ioctl(fd, IOCTL_FILE_INFO, result);
+    // auto len = fgetxattr(fd, "user.mergerfs.fullpath", result, PATH_MAX);
+    // ssize_t last_idx = PATH_MAX - 1;
+    // auto null_idx = std::min(len, last_idx);
+    // result[null_idx] = 0;
 
-    return len;
+    // return len;
 }
 
 int openat(int dirfd, const char* path, int flags, ...) {
