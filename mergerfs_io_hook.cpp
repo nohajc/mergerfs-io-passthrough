@@ -69,12 +69,6 @@ HOOK(openat);
 static int get_real_path(int fd, char result[PATH_MAX]) {
     strcpy(result, "fullpath");
     return ioctl(fd, IOCTL_FILE_INFO, result);
-    // auto len = fgetxattr(fd, "user.mergerfs.fullpath", result, PATH_MAX);
-    // ssize_t last_idx = PATH_MAX - 1;
-    // auto null_idx = std::min(len, last_idx);
-    // result[null_idx] = 0;
-
-    // return len;
 }
 
 int openat(int dirfd, const char* path, int flags, ...) {
