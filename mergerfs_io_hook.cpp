@@ -53,6 +53,7 @@ namespace {
 extern "C" {
     int open(const char *path, int flags, ...);
     int openat(int dirfd, const char* path, int flags, ...);
+    int creat(const char *path, mode_t mode);
 }
 
 HOOK(open);
@@ -109,6 +110,10 @@ int openat(int dirfd, const char* path, int flags, ...) {
     }
 
     return hooked_open(real_path, flags);
+}
+
+int creat(const char *path, mode_t mode) {
+    return open(path, O_CREAT | O_WRONLY | O_TRUNC, mode);
 }
 
 int open(const char *path, int flags, ...) {
