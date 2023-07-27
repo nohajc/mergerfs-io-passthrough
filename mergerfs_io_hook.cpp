@@ -8,8 +8,6 @@
 #include <mutex>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/xattr.h>
 #include <syslog.h>
 #include <unistd.h>
 
