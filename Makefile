@@ -17,3 +17,8 @@ install: libmergerfs_io_hook.so rtorrent-mfs
 	install -m 755 libmergerfs_io_hook.so $(DESTDIR)$(PREFIX)/lib/
 	install -d $(DESTDIR)$(PREFIX)/bin/
 	install -m 755 rtorrent-mfs $(DESTDIR)$(PREFIX)/bin/
+
+.PHONY: clean
+
+clean:
+	rm -f *.so *.o
